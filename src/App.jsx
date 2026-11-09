@@ -7,6 +7,7 @@ import { fetchDays } from './lib/sheet'
 import { REF } from './lib/reference'
 import FactorImpact from './components/FactorImpact'
 import Explore from './components/Explore'
+import CalendarHeatmap from './components/CalendarHeatmap'
 
 const axis = { stroke: '#64748b', fontSize: 12 }
 const tip = { contentStyle: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8 } }
@@ -112,6 +113,10 @@ export default function App() {
         />
         <Kpi label="Avg self-rated quality" value={fmt(avg(chart.map((d) => d.quality)))} unit="/5" />
       </div>
+
+      <Card title="Sleep calendar">
+        <CalendarHeatmap days={days} />
+      </Card>
 
       <Card title="What affects my sleep?">
         <FactorImpact days={days} />

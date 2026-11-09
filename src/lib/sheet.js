@@ -27,9 +27,10 @@ export async function fetchDays() {
     .filter((r) => r[0])
     .map((r) => {
       const c = Array.from({ length: 21 }, (_, i) => r[i] ?? '')
-      const [d, m] = c[0].split('/')
+      const [d, m, y] = c[0].split('/')
       return {
         date: `${d}/${m}`,
+        iso: y ? `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}` : null,
         form: {
           quality: num(c[1]), rested: num(c[2]), caffeine: c[3] || null,
           screens: c[4] || null, stress: num(c[5]), nap: c[6] || null,

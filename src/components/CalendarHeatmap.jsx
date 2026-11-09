@@ -1,0 +1,219 @@
+import { useState } from 'react'
+import { metric } from '../lib/metrics'
+
+// Fixed colour ranges per measure, so a colour means the same thing every month
+const MEASURES = [
+  { key: 'score', min: 40, max: 100 },
+  { key: 'total', min: 5, max: 9 },
+  { key: 'deep', min: 0.5, max: 3 },
+  { key: 'quality', min: 1, max: 5 },
+].map((m) => ({ ...metric(m.key), ...m }))
+
+// Dark indigo → light periwinkle: lightness rises steadily, so brighter = better
+const STOPS = ['#1e1b4b', '#3730a3', '#6366f1', '#a5b4fc', '#e0e7ff']
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+function colour(t) {
+  const x = Math.min(1, Math.max(0, t)) * (STOPS.length - 1)
+  const i = Math.min(STOPS.length - 2, Math.floor(x))
+  const a = hex(STOPS[i])
+  const b = hex(STOPS[i + 1])
+  const f = x - i
+  return `rgb(${a.map((v, k) => Math.round(v + (b[k] - v) * f)).join(',')})`
+}
+
+const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const pad = (n) => String(n).padStart(2, '0')
+const isoOf = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`
+const weekdayIdx = (iso) => (new Date(`${iso}T12:00:00`).getDay() + 6) % 7 // Monday = 0
+
+function months(days) {
+  const keys = [...new Set(days.filter((d) => d.iso).map((d) => d.iso.slice(0, 7)))].sort()
+  return keys.map((k) => {
+    const [y, m] = k.split('-').map(Number)
+    return { y, m: m - 1 }
+  })
+}
+
+function Month({ y, m, byIso, measure, hovered, onHover, todayIso }) {
+  const first = (new Date(y, m, 1).getDay() + 6) % 7
+  const count = new Date(y, m + 1, 0).getDate()
+  const cells = [...Array(first).fill(null), ...Array.from({ length: count }, (_, i) => i + 1)]
+  const title = new Date(y, m, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+
+  return (
+    <div>
+      <p className="mb-2 text-sm font-medium text-slate-300">{title}</p>
+      <div className="grid grid-cols-7 gap-1.5">
+        {WEEKDAYS.map((w) => (
+          <span key={w} className="pb-1 text-center text-[10px] uppercase tracking-wide text-slate-500">{w[0]}</span>
+        ))}
+        {cells.map((d, i) => {
+          if (d == null) return <span key={`e${i}`} />
+          const iso = isoOf(y, m, d)
+          const day = byIso[iso]
+          const v = day ? measure.get(day) : null
+          const t = v == null ? null : (v - measure.min) / (measure.max - measure.min)
+          const future = iso > todayIso
+          const active = hovered === iso
+          return (
+            <button
+              key={iso}
+              type="button"
+              onMouseEnter={() => day && onHover(iso)}
+              onFocus={() => day && onHover(iso)}
+              className={`relative flex aspect-square w-10 items-center justify-center rounded-md text-xs transition sm:w-11 ${
+                active ? 'ring-2 ring-amber-300 ring-offset-2 ring-offset-slate-900' : ''
+              } ${day ? 'cursor-pointer' : 'cursor-default'}`}
+              style={
+                t != null
+                  ? { background: colour(t), color: t > 0.6 ? '#1e1b4b' : '#e0e7ff' }
+                  : {
+                      border: `1px ${day ? 'dashed' : 'solid'} ${day ? '#475569' : future ? '#131c2e' : '#1e293b'}`,
+                      color: future ? '#2b3a52' : '#64748b',
+                    }
+              }
+              aria-label={`${iso}${v != null ? `: ${v.toFixed(measure.digits)}` : ''}`}
+            >
+              {d}
+              {day?.form.unusual && !/^no(ne)?$/i.test(day.form.unusual) && (
+                <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-300" />
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+const fmtH = (v) => {
+  if (v == null) return '–'
+  const mins = Math.round(v * 60)
+  return `${Math.floor(mins / 60)}h ${pad(mins % 60)}m`
+}
+
+function Detail({ day }) {
+  if (!day) return null
+  const when = new Date(`${day.iso}T12:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+  const rows = [
+    ['Sleep score', day.sleep.score ?? '–'],
+    ['Total sleep', fmtH(day.sleep.total)],
+    ['Deep sleep', fmtH(day.sleep.deep)],
+    ['Self-rated quality', day.form.quality != null ? `${day.form.quality} / 5` : '–'],
+    ['Room', day.env.temp != null ? `${day.env.temp} °C · ${day.env.humidity ?? '–'} %` : '–'],
+  ]
+  const note = day.form.unusual && !/^no(ne)?$/i.test(day.form.unusual) ? day.form.unusual : null
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+      <p className="text-xs uppercase tracking-wide text-slate-500">Night of</p>
+      <p className="mb-3 font-medium text-slate-200">{when}</p>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+        {rows.map(([k, v]) => (
+          <div key={k} className="contents">
+            <dt className="text-slate-500">{k}</dt>
+            <dd className="text-right text-slate-200">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      {note && <p className="mt-3 border-t border-slate-800 pt-2 text-xs text-amber-200/80">“{note}”</p>}
+    </div>
+  )
+}
+
+function Weekdays({ days, measure }) {
+  const groups = WEEKDAYS.map(() => [])
+  for (const d of days) {
+    const v = measure.get(d)
+    if (d.iso && v != null) groups[weekdayIdx(d.iso)].push(v)
+  }
+  return (
+    <div>
+      <p className="mb-2 text-xs uppercase tracking-wide text-slate-500">Average by weekday</p>
+      <div className="flex h-24 items-end gap-1.5">
+        {groups.map((g, i) => {
+          const avg = g.length ? g.reduce((a, b) => a + b, 0) / g.length : null
+          const t = avg == null ? 0 : (avg - measure.min) / (measure.max - measure.min)
+          return (
+            <div key={WEEKDAYS[i]} className="flex flex-1 flex-col items-center gap-1" title={avg == null ? 'No nights yet' : `${g.length} night${g.length > 1 ? 's' : ''}`}>
+              <span className="text-[10px] text-slate-400">{avg == null ? '' : avg.toFixed(measure.digits)}</span>
+              <div
+                className="w-full rounded-t"
+                style={{
+                  height: avg == null ? 2 : `${Math.max(6, t * 56)}px`,
+                  background: avg == null ? '#1e293b' : colour(t),
+                }}
+              />
+              <span className="text-[10px] text-slate-500">{WEEKDAYS[i]}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+export default function CalendarHeatmap({ days }) {
+  const [key, setKey] = useState('score')
+  const measure = MEASURES.find((m) => m.key === key)
+  const byIso = Object.fromEntries(days.filter((d) => d.iso).map((d) => [d.iso, d]))
+  const latest = [...days].reverse().find((d) => d.iso && d.sleep.score != null)
+  const [hovered, setHovered] = useState(null)
+  const shown = byIso[hovered] ?? latest
+  const [todayIso] = useState(() => {
+    const now = new Date()
+    return isoOf(now.getFullYear(), now.getMonth(), now.getDate())
+  })
+
+  return (
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-slate-400">One square per night. Brighter means better. Hover a night for details.</p>
+        <div className="flex rounded-lg border border-slate-800 bg-slate-950/60 p-0.5 text-xs">
+          {MEASURES.map((m) => (
+            <button
+              key={m.key}
+              onClick={() => setKey(m.key)}
+              className={`rounded-md px-2.5 py-1 transition ${
+                m.key === key ? 'bg-slate-700 text-slate-100' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6 md:flex-row">
+        <div className="flex flex-wrap gap-8">
+          {months(days).map(({ y, m }) => (
+            <Month
+              key={`${y}-${m}`} y={y} m={m} byIso={byIso} measure={measure}
+              hovered={shown?.iso} onHover={setHovered} todayIso={todayIso}
+            />
+          ))}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-5 md:max-w-sm">
+          <Detail day={shown} />
+          <Weekdays days={days} measure={measure} />
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500">
+        <span className="flex items-center gap-2">
+          {measure.min}{measure.unit && ` ${measure.unit}`}
+          <span
+            className="inline-block h-2.5 w-28 rounded-sm"
+            style={{ background: `linear-gradient(to right, ${STOPS.join(',')})` }}
+          />
+          {measure.max}{measure.unit && ` ${measure.unit}`}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-3 w-3 rounded-sm border border-dashed border-slate-500" /> Logged, no value
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-300" /> Unusual night noted
+        </span>
+      </div>
+    </div>
+  )
+}
