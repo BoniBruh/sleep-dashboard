@@ -6,6 +6,7 @@ import {
 import { fetchDays } from './lib/sheet'
 import { REF } from './lib/reference'
 import FactorImpact from './components/FactorImpact'
+import Explore from './components/Explore'
 
 const axis = { stroke: '#64748b', fontSize: 12 }
 const tip = { contentStyle: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8 } }
@@ -114,6 +115,10 @@ export default function App() {
 
       <Card title="What affects my sleep?">
         <FactorImpact days={days} />
+      </Card>
+
+      <Card title="Explore any two values">
+        <Explore days={days} />
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
