@@ -8,6 +8,7 @@ import { REF } from './lib/reference'
 import FactorImpact from './components/FactorImpact'
 import Explore from './components/Explore'
 import CalendarHeatmap from './components/CalendarHeatmap'
+import Story from './components/Story'
 
 const axis = { stroke: '#64748b', fontSize: 12 }
 const tip = { contentStyle: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8 } }
@@ -69,6 +70,13 @@ export default function App() {
   const [days, setDays] = useState([])
   const [error, setError] = useState(null)
   const [updated, setUpdated] = useState(null)
+  // #story in the URL opens story mode directly, handy for presenting
+  const [mode, setModeState] = useState(() => (window.location.hash === '#story' ? 'story' : 'dashboard'))
+  const setMode = (m) => {
+    setModeState(m)
+    history.replaceState(null, '', m === 'story' ? '#story' : window.location.pathname)
+    window.scrollTo({ top: 0 })
+  }
 
   useEffect(() => {
     const load = () =>
@@ -92,11 +100,27 @@ export default function App() {
           <h1 className="text-2xl font-semibold">Sleep monitoring</h1>
           <p className="text-sm text-slate-400">Form · Withings · Room environment</p>
         </div>
-        <p className="text-xs text-slate-500">
-          {error ? `Error: ${error}` : updated ? `Updated ${updated.toLocaleTimeString()}` : 'Loading…'}
-        </p>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex rounded-lg border border-slate-800 bg-slate-950/60 p-0.5 text-sm">
+            {[['dashboard', 'Dashboard'], ['story', 'Story']].map(([k, label]) => (
+              <button
+                key={k}
+                onClick={() => setMode(k)}
+                className={`rounded-md px-3 py-1 transition ${
+                  mode === k ? 'bg-indigo-500/80 text-white' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-slate-500">
+            {error ? `Error: ${error}` : updated ? `Updated ${updated.toLocaleTimeString()}` : 'Loading…'}
+          </p>
+        </div>
       </header>
 
+      {mode === 'story' ? <Story days={days} /> : <>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Kpi label="Avg sleep score" value={fmt(avg(chart.map((d) => d.score)), 0)} />
         <Kpi
@@ -258,6 +282,7 @@ export default function App() {
           Individual needs vary, so use them for comparison only.
         </p>
       </Card>
+      </>}
     </main>
   )
 }
