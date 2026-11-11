@@ -229,7 +229,7 @@ function buildSteps(a, days) {
 
   return [
     {
-      kicker: 'Sleep diary',
+      kicker: '🌙 Sleep diary',
       title: 'How did I actually sleep?',
       body: (
         <>
@@ -242,7 +242,7 @@ function buildSteps(a, days) {
       visual: <IntroVisual a={a} />,
     },
     {
-      kicker: 'The baseline',
+      kicker: '🛌 The baseline',
       title: 'An average night',
       body: (
         <>
@@ -256,7 +256,7 @@ function buildSteps(a, days) {
       visual: <AverageNightVisual a={a} />,
     },
     {
-      kicker: 'Night by night',
+      kicker: '📅 Night by night',
       title: 'Most nights look alike',
       body: (
         <>
@@ -267,7 +267,7 @@ function buildSteps(a, days) {
       visual: <NightsVisual a={a} highlight="both" />,
     },
     {
-      kicker: 'The outlier',
+      kicker: '🚨 The outlier',
       title: `${longDate(a.worst.iso)}: a score of ${a.worst.sleep.score}`,
       body: (
         <>
@@ -282,7 +282,7 @@ function buildSteps(a, days) {
       visual: <OutlierVisual a={a} />,
     },
     {
-      kicker: 'The bedroom',
+      kicker: '🌡️ The bedroom',
       title: 'Was the room the problem?',
       body: (
         <>
@@ -301,7 +301,7 @@ function buildSteps(a, days) {
       visual: <RoomVisual days={days} />,
     },
     {
-      kicker: 'Perception',
+      kicker: '🤔 Perception',
       title: 'Does how I feel match the tracker?',
       body: a.felt.length >= 3 ? (
         <>
@@ -317,7 +317,7 @@ function buildSteps(a, days) {
       visual: <FeltVisual a={a} />,
     },
     {
-      kicker: 'Habits',
+      kicker: '🔍 Habits',
       title: 'What seems to matter?',
       body: top ? (
         <>
@@ -334,7 +334,7 @@ function buildSteps(a, days) {
       visual: <FactorsVisual a={a} />,
     },
     {
-      kicker: 'Conclusion',
+      kicker: '💡 Conclusion',
       title: 'What I take away',
       body: <>{a.nights.length} nights of data is a start, not an answer. Here is what I learned and what comes next.</>,
       visual: (
