@@ -27,22 +27,22 @@ function Tip({ active, payload }) {
   if (!active || !payload?.length) return null
   const p = payload[0].payload
   return (
-    <div className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs shadow-lg">
-      <p className="mb-1 font-medium text-slate-200">{p.label}{p.party ? ' 🎉' : ''}</p>
-      <p className="text-slate-400">In bed <span className="text-slate-200">{clock(p.range[0])} → {clock(p.range[1])}</span> ({dur(p.range[1] - p.range[0])})</p>
-      {p.total != null && <p className="text-slate-400">Asleep <span className="text-slate-200">{dur(p.total * 60)}</span></p>}
-      {p.awake != null && <p className="text-slate-400">Awake in bed <span className="text-slate-200">{dur(p.awake)}</span></p>}
-      {p.score != null && <p className="text-slate-400">Sleep score <span className="text-slate-200">{p.score}</span></p>}
+    <div className="rounded-lg border border-ink-300 bg-ink-50 px-3 py-2 text-xs shadow-lg">
+      <p className="mb-1 font-medium text-ink-800">{p.label}{p.party ? ' 🎉' : ''}</p>
+      <p className="text-ink-600">In bed <span className="text-ink-800">{clock(p.range[0])} → {clock(p.range[1])}</span> ({dur(p.range[1] - p.range[0])})</p>
+      {p.total != null && <p className="text-ink-600">Asleep <span className="text-ink-800">{dur(p.total * 60)}</span></p>}
+      {p.awake != null && <p className="text-ink-600">Awake in bed <span className="text-ink-800">{dur(p.awake)}</span></p>}
+      {p.score != null && <p className="text-ink-600">Sleep score <span className="text-ink-800">{p.score}</span></p>}
     </div>
   )
 }
 
 function Stat({ label, value, hint }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-3">
-      <p className="text-[11px] uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-xl font-semibold text-slate-100">{value}</p>
-      {hint && <p className="text-[11px] text-slate-500">{hint}</p>}
+    <div className="rounded-xl border border-ink-200 bg-ink-50/50 px-4 py-3">
+      <p className="text-[11px] uppercase tracking-wide text-ink-500">{label}</p>
+      <p className="mt-1 font-display text-3xl leading-tight text-ink-900">{value}</p>
+      {hint && <p className="text-[11px] text-ink-500">{hint}</p>}
     </div>
   )
 }
@@ -50,7 +50,7 @@ function Stat({ label, value, hint }) {
 export default function SleepWindow({ days }) {
   const nights = days.filter((d) => d.night)
   if (!nights.length) {
-    return <p className="text-sm text-slate-500">No bed and wake times found in the Withings data yet.</p>
+    return <p className="text-sm text-ink-500">No bed and wake times found in the Withings data yet.</p>
   }
 
   const rows = nights.map((d) => ({
@@ -81,8 +81,8 @@ export default function SleepWindow({ days }) {
 
   return (
     <div>
-      <p className="mb-4 text-sm text-slate-400">
-        When you went to bed and got up each night, from the Withings sleep sessions. Brighter bars mean a better sleep score.
+      <p className="mb-4 text-sm text-ink-600">
+        When you went to bed and got up each night, from the Withings sleep sessions. Deeper purple bars mean a better sleep score.
       </p>
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -98,22 +98,22 @@ export default function SleepWindow({ days }) {
 
       <ResponsiveContainer width="100%" height={rows.length * 34 + 50}>
         <BarChart data={rows} layout="vertical" margin={{ left: 8, right: 16, top: 20 }} barCategoryGap={6}>
-          <CartesianGrid stroke="#1e293b" horizontal={false} />
+          <CartesianGrid stroke="#ece9e2" horizontal={false} />
           <XAxis
             type="number" domain={[lo, hi]} ticks={ticks} tickFormatter={clock}
-            stroke="#64748b" fontSize={12} orientation="top"
+            stroke="#8a8798" fontSize={12} orientation="top"
           />
-          <YAxis type="category" dataKey="label" width={86} stroke="#64748b" fontSize={12} tickLine={false} />
-          <ReferenceLine x={0} stroke="#475569" />
-          <ReferenceLine x={avgBed} stroke="#fbbf24" strokeDasharray="4 4" />
-          <ReferenceLine x={avgWake} stroke="#38bdf8" strokeDasharray="4 4" />
-          <Tooltip content={<Tip />} cursor={{ fill: '#1e293b', opacity: 0.4 }} />
+          <YAxis type="category" dataKey="label" width={86} stroke="#8a8798" fontSize={12} tickLine={false} />
+          <ReferenceLine x={0} stroke="#c4c0cc" />
+          <ReferenceLine x={avgBed} stroke="#e2b33c" strokeDasharray="4 4" />
+          <ReferenceLine x={avgWake} stroke="#5a8db3" strokeDasharray="4 4" />
+          <Tooltip content={<Tip />} cursor={{ fill: '#ece9e2', opacity: 0.4 }} />
           <Bar dataKey="range" radius={6}>
             {rows.map((r) => (
               <Cell
                 key={r.label}
-                fill={r.score == null ? '#334155' : colour((r.score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN))}
-                stroke={r.party ? '#f472b6' : 'none'}
+                fill={r.score == null ? '#dcd8cf' : colour((r.score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN))}
+                stroke={r.party ? '#e0904a' : 'none'}
                 strokeWidth={r.party ? 2 : 0}
               />
             ))}
@@ -121,7 +121,7 @@ export default function SleepWindow({ days }) {
         </BarChart>
       </ResponsiveContainer>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500">
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink-500">
         <span className="flex items-center gap-2">
           score {SCORE_MIN}
           <span className="inline-block h-2.5 w-24 rounded-sm" style={{ background: `linear-gradient(to right, ${STOPS.join(',')})` }} />
@@ -134,26 +134,26 @@ export default function SleepWindow({ days }) {
           <span className="inline-block w-4 border-t-2 border-dashed border-sky-400" /> avg wake-up
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-4 rounded-sm border-2 border-pink-400" /> party night
+          <span className="inline-block h-2.5 w-4 rounded-sm border-2 border-orange-400" /> party night
         </span>
       </div>
 
-      <div className="mt-4 space-y-2 text-sm text-slate-400">
+      <div className="mt-4 space-y-2 text-sm text-ink-600">
         <p>
-          Your latest bedtime was <b className="text-slate-200">{clock(latest.bed)}</b> on{' '}
-          <b className="text-slate-200">{latest.label}</b>
-          {latest.score != null && <> with a sleep score of <b className="text-slate-200">{latest.score}</b></>}.
+          Your latest bedtime was <b className="text-ink-800">{clock(latest.bed)}</b> on{' '}
+          <b className="text-ink-800">{latest.label}</b>
+          {latest.score != null && <> with a sleep score of <b className="text-ink-800">{latest.score}</b></>}.
           {line && (
             <> Across {scored.length} nights, {strength(line.r) === 'no'
-              ? <>bedtime shows <b className="text-slate-200">no clear link</b> with sleep score</>
-              : <>a later bedtime went with a <b className="text-slate-200">{line.r < 0 ? 'lower' : 'higher'} sleep score</b>, {strength(line.r)} link</>}{' '}
+              ? <>bedtime shows <b className="text-ink-800">no clear link</b> with sleep score</>
+              : <>a later bedtime went with a <b className="text-ink-800">{line.r < 0 ? 'lower' : 'higher'} sleep score</b>, {strength(line.r)} link</>}{' '}
               (r = {line.r.toFixed(2)}
               {strength(line.r) !== 'no' && <>, about {Math.abs(Math.round(line.slope * 60))} points per hour later</>}).
-              {scored.length < 15 && <span className="text-slate-500"> With this few nights, one very late night can drive the result.</span>}</>
+              {scored.length < 15 && <span className="text-ink-500"> With this few nights, one very late night can drive the result.</span>}</>
           )}
         </p>
-        <p className="rounded-lg border border-slate-800 bg-slate-950/50 p-2.5 text-xs text-slate-500">
-          <b className="text-slate-400">Time to fall asleep</b> is not in the data yet. “Awake in bed” is time in bed minus sleep,
+        <p className="rounded-lg border border-ink-200 bg-ink-50/50 p-2.5 text-xs text-ink-500">
+          <b className="text-ink-600">Time to fall asleep</b> is not in the data yet. “Awake in bed” is time in bed minus sleep,
           so it also includes waking up during the night and lying in after waking.
         </p>
       </div>

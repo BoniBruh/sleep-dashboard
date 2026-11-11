@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { metric } from '../lib/metrics'
-import { STOPS, colour } from '../lib/colour'
+import { STOPS, colour, textOn } from '../lib/colour'
 
 // Fixed colour ranges per measure, so a colour means the same thing every month
 const MEASURES = [
@@ -32,10 +32,10 @@ function Month({ y, m, byIso, measure, hovered, onHover, onSelect, todayIso }) {
 
   return (
     <div>
-      <p className="mb-2 text-sm font-medium text-slate-300">{title}</p>
+      <p className="mb-2 text-sm font-medium text-ink-700">{title}</p>
       <div className="grid grid-cols-7 gap-1.5">
         {WEEKDAYS.map((w) => (
-          <span key={w} className="pb-1 text-center text-[10px] uppercase tracking-wide text-slate-500">{w[0]}</span>
+          <span key={w} className="pb-1 text-center text-[10px] uppercase tracking-wide text-ink-500">{w[0]}</span>
         ))}
         {cells.map((d, i) => {
           if (d == null) return <span key={`e${i}`} />
@@ -52,15 +52,15 @@ function Month({ y, m, byIso, measure, hovered, onHover, onSelect, todayIso }) {
               onMouseEnter={() => day && onHover(iso)}
               onFocus={() => day && onHover(iso)}
               onClick={() => day && onSelect(iso)}
-              className={`relative flex aspect-square w-10 items-center justify-center rounded-md text-xs transition sm:w-11 ${
-                active ? 'ring-2 ring-amber-300 ring-offset-2 ring-offset-slate-900' : ''
-              } ${day ? 'cursor-pointer' : 'cursor-default'}`}
+              className={`relative flex aspect-square w-10 items-center justify-center rounded-md text-xs transition duration-200 sm:w-11 ${
+                active ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-white' : ''
+              } ${day ? 'cursor-pointer hover:z-10 hover:shadow-lg hover:shadow-violet-900/25 motion-safe:hover:scale-115' : 'cursor-default'}`}
               style={
                 t != null
-                  ? { background: colour(t), color: t > 0.6 ? '#1e1b4b' : '#e0e7ff' }
+                  ? { background: colour(t), color: textOn(t) }
                   : {
-                      border: `1px ${day ? 'dashed' : 'solid'} ${day ? '#475569' : future ? '#131c2e' : '#1e293b'}`,
-                      color: future ? '#2b3a52' : '#64748b',
+                      border: `1px ${day ? 'dashed' : 'solid'} ${day ? '#c4c0cc' : future ? '#f1eee8' : '#ece9e2'}`,
+                      color: future ? '#cfcbd6' : '#8a8798',
                     }
               }
               aria-label={`${iso}${v != null ? `: ${v.toFixed(measure.digits)}` : ''}${day?.party ? ', party night' : ''}`}
@@ -98,38 +98,38 @@ function Detail({ day, pinned, party }) {
   ]
   const note = day.form.unusual && !/^no(ne)?$/i.test(day.form.unusual) ? day.form.unusual : null
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-      <p className="text-xs uppercase tracking-wide text-slate-500">Night of</p>
-      <p className="mb-3 font-medium text-slate-200">{when}</p>
+    <div className="rounded-xl border border-ink-200 bg-ink-50/50 p-4">
+      <p className="text-xs uppercase tracking-wide text-ink-500">Night of</p>
+      <p className="mb-3 font-medium text-ink-800">{when}</p>
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
         {rows.map(([k, v]) => (
           <div key={k} className="contents">
-            <dt className="text-slate-500">{k}</dt>
-            <dd className="text-right text-slate-200">{v}</dd>
+            <dt className="text-ink-500">{k}</dt>
+            <dd className="text-right text-ink-800">{v}</dd>
           </div>
         ))}
       </dl>
-      {note && <p className="mt-3 border-t border-slate-800 pt-2 text-xs text-amber-200/80">“{note}”</p>}
-      <div className="mt-3 border-t border-slate-800 pt-3">
+      {note && <p className="mt-3 border-t border-ink-200 pt-2 text-xs text-amber-800">“{note}”</p>}
+      <div className="mt-3 border-t border-ink-200 pt-3">
         <button
           type="button"
           onClick={() => party.toggle(day.iso)}
           aria-pressed={day.party}
           className={`flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition ${
             day.party
-              ? 'border-pink-400/60 bg-pink-500/15 text-pink-200 hover:bg-pink-500/25'
-              : 'border-slate-700 text-slate-300 hover:border-pink-400/60 hover:text-pink-200'
+              ? 'border-orange-400/60 bg-orange-500/15 text-orange-700 hover:bg-orange-500/25'
+              : 'border-ink-300 text-ink-700 hover:border-orange-400/60 hover:text-orange-700'
           }`}
         >
           <span aria-hidden>🎉</span>
           {day.party ? 'Party night (click to unmark)' : 'Mark as party night'}
         </button>
-        <p className="mt-1.5 text-center text-[11px] text-slate-500">
+        <p className="mt-1.5 text-center text-[11px] text-ink-500">
           {party.saving ? 'Saving to the Google Sheet…'
             : !pinned ? 'Click a night in the calendar to select it'
               : party.synced ? 'Saved to the Google Sheet' : 'Saved in this browser only'}
         </p>
-        {party.error && <p className="mt-1 text-center text-[11px] text-rose-300">{party.error}</p>}
+        {party.error && <p className="mt-1 text-center text-[11px] text-rose-700">{party.error}</p>}
       </div>
     </div>
   )
@@ -143,22 +143,22 @@ function Weekdays({ days, measure }) {
   }
   return (
     <div>
-      <p className="mb-2 text-xs uppercase tracking-wide text-slate-500">Average by weekday</p>
+      <p className="mb-2 text-xs uppercase tracking-wide text-ink-500">Average by weekday</p>
       <div className="flex h-24 items-end gap-1.5">
         {groups.map((g, i) => {
           const avg = g.length ? g.reduce((a, b) => a + b, 0) / g.length : null
           const t = avg == null ? 0 : (avg - measure.min) / (measure.max - measure.min)
           return (
             <div key={WEEKDAYS[i]} className="flex flex-1 flex-col items-center gap-1" title={avg == null ? 'No nights yet' : `${g.length} night${g.length > 1 ? 's' : ''}`}>
-              <span className="text-[10px] text-slate-400">{avg == null ? '' : avg.toFixed(measure.digits)}</span>
+              <span className="text-[10px] text-ink-600">{avg == null ? '' : avg.toFixed(measure.digits)}</span>
               <div
                 className="w-full rounded-t"
                 style={{
                   height: avg == null ? 2 : `${Math.max(6, t * 56)}px`,
-                  background: avg == null ? '#1e293b' : colour(t),
+                  background: avg == null ? '#ece9e2' : colour(t),
                 }}
               />
-              <span className="text-[10px] text-slate-500">{WEEKDAYS[i]}</span>
+              <span className="text-[10px] text-ink-500">{WEEKDAYS[i]}</span>
             </div>
           )
         })}
@@ -184,14 +184,14 @@ export default function CalendarHeatmap({ days, party }) {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-400">One square per night. Brighter means better. Hover a night for details.</p>
-        <div className="flex rounded-lg border border-slate-800 bg-slate-950/60 p-0.5 text-xs">
+        <p className="text-sm text-ink-600">One square per night. Deeper purple means better. Hover a night for details.</p>
+        <div className="flex rounded-lg border border-ink-200 bg-ink-50/60 p-0.5 text-xs">
           {MEASURES.map((m) => (
             <button
               key={m.key}
               onClick={() => setKey(m.key)}
               className={`rounded-md px-2.5 py-1 transition ${
-                m.key === key ? 'bg-slate-700 text-slate-100' : 'text-slate-400 hover:text-slate-200'
+                m.key === key ? 'bg-accent-soft font-medium text-accent' : 'text-ink-600 hover:text-ink-800'
               }`}
             >
               {m.label}
@@ -216,7 +216,7 @@ export default function CalendarHeatmap({ days, party }) {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500">
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink-500">
         <span className="flex items-center gap-2">
           {measure.min}{measure.unit && ` ${measure.unit}`}
           <span
@@ -226,7 +226,7 @@ export default function CalendarHeatmap({ days, party }) {
           {measure.max}{measure.unit && ` ${measure.unit}`}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded-sm border border-dashed border-slate-500" /> Logged, no value
+          <span className="inline-block h-3 w-3 rounded-sm border border-dashed border-ink-500" /> Logged, no value
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-300" /> Unusual night noted

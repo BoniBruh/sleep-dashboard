@@ -7,9 +7,9 @@ import { REF } from '../lib/reference'
 import { OUTCOMES, factorImpact } from '../lib/factors'
 import { fit } from '../lib/metrics'
 
-const axis = { stroke: '#64748b', fontSize: 12 }
-const tip = { contentStyle: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8 } }
-const C = { deep: '#6366f1', light: '#38bdf8', rem: '#f472b6', good: '#34d399', bad: '#fb7185', amber: '#fbbf24', muted: '#475569', violet: '#a78bfa' }
+const axis = { stroke: '#8a8798', fontSize: 12 }
+const tip = { contentStyle: { background: '#ffffff', border: '1px solid #dcd8cf', borderRadius: 8 } }
+const C = { deep: '#7c62c8', light: '#5a8db3', rem: '#7fc79c', good: '#5fae84', bad: '#d4735a', amber: '#e2b33c', muted: '#c4c0cc', violet: '#8b74d6' }
 
 const avg = (a) => {
   const v = a.filter((x) => x != null)
@@ -22,7 +22,7 @@ const hm = (v) => {
 }
 const longDate = (iso, opts = { weekday: 'long', day: 'numeric', month: 'long' }) =>
   iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('en-GB', opts) : ''
-const B = ({ children }) => <b className="font-semibold text-slate-100">{children}</b>
+const B = ({ children }) => <b className="font-semibold text-ink-900">{children}</b>
 
 // Work out every number the story needs from the raw days
 function analyse(days) {
@@ -67,9 +67,9 @@ function analyse(days) {
 
 function Big({ value, label }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-center">
-      <p className="text-4xl font-semibold text-slate-100">{value}</p>
-      <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">{label}</p>
+    <div className="rounded-2xl border border-ink-200 bg-ink-100/60 p-5 text-center">
+      <p className="font-display text-5xl text-ink-900">{value}</p>
+      <p className="mt-1 text-xs uppercase tracking-wide text-ink-500">{label}</p>
     </div>
   )
 }
@@ -92,7 +92,7 @@ function AverageNightVisual({ a }) {
         <XAxis type="number" domain={[0, 10]} ticks={[0, 2, 4, 6, 8, 10]} unit=" h" {...axis} />
         <YAxis type="category" dataKey="name" hide />
         <ReferenceArea x1={REF.totalSleep.min} x2={REF.totalSleep.max} fill={C.good} fillOpacity={0.12} stroke="none"
-          label={{ value: `Recommended ${REF.totalSleep.label}`, position: 'insideTop', fill: '#6ee7b7', fontSize: 11 }} />
+          label={{ value: `Recommended ${REF.totalSleep.label}`, position: 'insideTop', fill: '#3f8f68', fontSize: 11 }} />
         <Tooltip {...tip} formatter={(v) => hm(v)} cursor={false} />
         <Legend />
         <Bar dataKey="deep" name="Deep" stackId="s" fill={C.deep} barSize={56} />
@@ -107,18 +107,18 @@ function NightsVisual({ a, highlight }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={a.nights.map((d) => ({ date: d.date, score: d.sleep.score, iso: d.iso }))}>
-        <CartesianGrid stroke="#1e293b" vertical={false} />
+        <CartesianGrid stroke="#ece9e2" vertical={false} />
         <XAxis dataKey="date" {...axis} />
         <YAxis domain={[0, 100]} {...axis} />
-        <ReferenceLine y={a.score} stroke="#94a3b8" strokeDasharray="4 4"
-          label={{ value: `avg ${Math.round(a.score)}`, position: 'right', fill: '#94a3b8', fontSize: 11 }} />
+        <ReferenceLine y={a.score} stroke="#9a96a8" strokeDasharray="4 4"
+          label={{ value: `avg ${Math.round(a.score)}`, position: 'right', fill: '#9a96a8', fontSize: 11 }} />
         <Bar dataKey="score" radius={[6, 6, 0, 0]}>
           {a.nights.map((d) => (
             <Cell key={d.date} fill={
               d === a.worst ? C.bad : d === a.best && highlight === 'both' ? C.good : C.muted
             } />
           ))}
-          <LabelList dataKey="score" position="top" fill="#cbd5e1" fontSize={12} />
+          <LabelList dataKey="score" position="top" fill="#3c3a50" fontSize={12} />
         </Bar>
       </BarChart>
     </ResponsiveContainer>
@@ -134,10 +134,10 @@ function OutlierVisual({ a }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data}>
-        <CartesianGrid stroke="#1e293b" vertical={false} />
+        <CartesianGrid stroke="#ece9e2" vertical={false} />
         <XAxis dataKey="name" {...axis} />
         <YAxis unit=" h" {...axis} />
-        <Tooltip {...tip} formatter={(v) => hm(v)} cursor={{ fill: '#1e293b', opacity: 0.4 }} />
+        <Tooltip {...tip} formatter={(v) => hm(v)} cursor={{ fill: '#ece9e2', opacity: 0.4 }} />
         <Legend />
         <Bar dataKey="rest" name="Other nights (avg)" fill={C.muted} radius={[6, 6, 0, 0]} />
         <Bar dataKey="worst" name={a.worst.date} fill={C.bad} radius={[6, 6, 0, 0]} />
@@ -151,16 +151,16 @@ function RoomVisual({ days }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
-        <CartesianGrid stroke="#1e293b" />
+        <CartesianGrid stroke="#ece9e2" />
         <XAxis dataKey="date" {...axis} />
         <YAxis yAxisId="t" domain={[14, 24]} unit="°" {...axis} />
         <YAxis yAxisId="h" orientation="right" domain={[20, 70]} unit="%" {...axis} />
         <Tooltip {...tip} />
         <Legend />
         <ReferenceArea yAxisId="t" y1={REF.temp.min} y2={REF.temp.max} fill={C.amber} fillOpacity={0.12} stroke="none" />
-        <ReferenceArea yAxisId="h" y1={REF.humidity.min} y2={REF.humidity.max} fill="#22d3ee" fillOpacity={0.08} stroke="none" />
+        <ReferenceArea yAxisId="h" y1={REF.humidity.min} y2={REF.humidity.max} fill="#6aaccf" fillOpacity={0.08} stroke="none" />
         <Line yAxisId="t" dataKey="temp" name="Temp (°C)" stroke={C.amber} strokeWidth={2.5} />
-        <Line yAxisId="h" dataKey="humidity" name="Humidity (%)" stroke="#22d3ee" strokeWidth={2} strokeDasharray="5 4" />
+        <Line yAxisId="h" dataKey="humidity" name="Humidity (%)" stroke="#6aaccf" strokeWidth={2} strokeDasharray="5 4" />
       </LineChart>
     </ResponsiveContainer>
   )
@@ -171,7 +171,7 @@ function FeltVisual({ a }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
-        <CartesianGrid stroke="#1e293b" />
+        <CartesianGrid stroke="#ece9e2" />
         <XAxis dataKey="date" {...axis} />
         <YAxis domain={[0, 100]} {...axis} />
         <Tooltip {...tip} formatter={(v, n) => (n === 'How I felt' ? `${v / 20} / 5` : v)} />
@@ -185,7 +185,7 @@ function FeltVisual({ a }) {
 
 function FactorsVisual({ a }) {
   if (!a.factors.length) {
-    return <p className="text-center text-sm text-slate-500">Not enough variety in the answers yet.</p>
+    return <p className="text-center text-sm text-ink-500">Not enough variety in the answers yet.</p>
   }
   const max = Math.ceil((Math.max(5, ...a.factors.map((r) => Math.abs(r.delta))) * 1.5) / 10) * 10
   return (
@@ -194,12 +194,12 @@ function FactorsVisual({ a }) {
         <XAxis type="number" domain={[-max, max]} ticks={[-max, -max / 2, 0, max / 2, max]}
           tickFormatter={(n) => (n > 0 ? `+${n}` : `${n}`)} {...axis} />
         <YAxis type="category" dataKey="label" width={180} tickLine={false} {...axis} />
-        <ReferenceLine x={0} stroke="#475569" />
+        <ReferenceLine x={0} stroke="#c4c0cc" />
         <Bar dataKey="delta" radius={4} barSize={24} minPointSize={2}>
           {a.factors.map((r) => (
             <Cell key={r.key} fill={r.delta >= 0 ? C.good : C.bad} fillOpacity={r.weak ? 0.45 : 0.9} />
           ))}
-          <LabelList dataKey="delta" position="right" fill="#cbd5e1" fontSize={12}
+          <LabelList dataKey="delta" position="right" fill="#3c3a50" fontSize={12}
             formatter={(v) => `${v > 0 ? '+' : ''}${v.toFixed(0)} pts`} />
         </Bar>
       </BarChart>
@@ -211,8 +211,8 @@ function TakeawaysVisual({ items }) {
   return (
     <ol className="w-full space-y-3">
       {items.map((t, i) => (
-        <li key={i} className="flex gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-xs font-semibold text-indigo-300">{i + 1}</span>
+        <li key={i} className="flex gap-3 rounded-xl border border-ink-200 bg-ink-100/60 p-4 text-sm text-ink-700">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-violet-700">{i + 1}</span>
           <span className="pt-0.5">{t}</span>
         </li>
       ))}
@@ -379,7 +379,7 @@ export default function Story({ days }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [active, steps.length])
 
-  if (!a) return <p className="py-20 text-center text-slate-500">Loading the story…</p>
+  if (!a) return <p className="py-20 text-center text-ink-500">Loading the story…</p>
 
   return (
     <div className="relative lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
@@ -390,7 +390,7 @@ export default function Story({ days }) {
             key={i}
             title={s.title}
             onClick={() => refs.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-            className={`h-2.5 w-2.5 rounded-full transition ${i === active ? 'scale-125 bg-indigo-300' : 'bg-slate-700 hover:bg-slate-500'}`}
+            className={`h-2.5 w-2.5 rounded-full transition ${i === active ? 'scale-125 bg-accent' : 'bg-ink-300 hover:bg-ink-500'}`}
           />
         ))}
       </nav>
@@ -404,11 +404,11 @@ export default function Story({ days }) {
             className="flex min-h-[75vh] flex-col justify-center py-10 first:min-h-[60vh] last:min-h-[80vh]"
           >
             <div className={`rounded-2xl border p-6 transition duration-500 ${
-              i === active ? 'border-slate-700 bg-slate-900/80' : 'border-transparent lg:opacity-40'
+              i === active ? 'border-ink-300 bg-ink-100/80' : 'border-transparent lg:opacity-40'
             }`}>
-              <p className="text-xs font-medium uppercase tracking-widest text-indigo-300">{i + 1} · {s.kicker}</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-100">{s.title}</h2>
-              <p className="mt-3 leading-relaxed text-slate-400">{s.body}</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-violet-700">{i + 1} · {s.kicker}</p>
+              <h2 className="mt-2 font-display text-4xl leading-tight text-ink-900">{s.title}</h2>
+              <p className="mt-3 leading-relaxed text-ink-600">{s.body}</p>
             </div>
             <div className="mt-6 lg:hidden">{s.visual}</div>
           </section>

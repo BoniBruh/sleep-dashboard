@@ -1,14 +1,90 @@
 @import "tailwindcss";
 
+/*
+ * Light, calm palette.
+ * "ink" is a warm neutral scale used instead of Tailwind's slate:
+ * 50 = page background, 100 = cards, 200–300 = borders, 500–600 = secondary text, 900 = headings.
+ * Data colours (sleep stages, good/bad, etc.) live in src/lib/colour.js.
+ */
+@theme {
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+
+  --color-ink-50: #e9e5ef;  /* page: soft lavender-grey */
+  --color-ink-100: #f8f6f3; /* cards: warm off-white, not pure white */
+  --color-ink-200: #e2dde6;
+  --color-ink-300: #d2ccd8;
+  --color-ink-400: #b3afbd;
+  --color-ink-500: #7d7a8b;
+  --color-ink-600: #64617a;
+  --color-ink-700: #4d4a62;
+  --color-ink-800: #36344b;
+  --color-ink-900: #25243a;
+  --color-ink-950: #1a192b;
+
+  /* lavender highlight for selected buttons, like the active nav pill */
+  --color-accent: #4f4291;
+  --color-accent-soft: #ebe6f6;
+}
+
 body {
-  background-color: #020617;
-  /* soft night-sky glow behind the page */
+  background-color: var(--color-ink-50);
+  /* soft lavender glow behind the page */
   background-image:
-    radial-gradient(60rem 30rem at 15% -10%, rgba(99, 102, 241, 0.16), transparent 60%),
-    radial-gradient(50rem 28rem at 95% 0%, rgba(56, 189, 248, 0.08), transparent 60%);
+    radial-gradient(55rem 30rem at 50% -8%, rgba(150, 128, 214, 0.28), transparent 65%),
+    radial-gradient(40rem 26rem at 100% 10%, rgba(127, 199, 156, 0.10), transparent 60%),
+    radial-gradient(45rem 30rem at 0% 100%, rgba(90, 141, 179, 0.10), transparent 60%);
   background-repeat: no-repeat;
   background-attachment: fixed;
-  color: #f1f5f9;
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+}
+
+/*
+ * Hover spotlight: a soft lavender glow and a glowing border that follow the mouse.
+ * The element sets --mx / --my on mousemove (see spotlight() in App.jsx).
+ */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight::before,
+.spotlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.spotlight::before {
+  z-index: -1;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(139, 116, 214, 0.24), transparent 45%);
+}
+.spotlight::after {
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(124, 98, 200, 0.7), transparent 55%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+.spotlight:hover::before,
+.spotlight:hover::after {
+  opacity: 1;
+}
+
+/* Emoji bounce for tile icons on hover */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  25% { transform: rotate(-14deg) scale(1.25); }
+  50% { transform: rotate(10deg) scale(1.2); }
+  75% { transform: rotate(-6deg) scale(1.22); }
+}
+.group:hover .wiggle-on-hover { animation: wiggle 0.7s ease-in-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .group:hover .wiggle-on-hover { animation: none; }
 }
 
 /* Story mode: each new visual fades and rises in */
