@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { metric } from '../lib/metrics'
+import { STOPS, colour } from '../lib/colour'
 
 // Fixed colour ranges per measure, so a colour means the same thing every month
 const MEASURES = [
@@ -9,17 +10,6 @@ const MEASURES = [
   { key: 'quality', min: 1, max: 5 },
 ].map((m) => ({ ...metric(m.key), ...m }))
 
-// Dark indigo → light periwinkle: lightness rises steadily, so brighter = better
-const STOPS = ['#1e1b4b', '#3730a3', '#6366f1', '#a5b4fc', '#e0e7ff']
-const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
-function colour(t) {
-  const x = Math.min(1, Math.max(0, t)) * (STOPS.length - 1)
-  const i = Math.min(STOPS.length - 2, Math.floor(x))
-  const a = hex(STOPS[i])
-  const b = hex(STOPS[i + 1])
-  const f = x - i
-  return `rgb(${a.map((v, k) => Math.round(v + (b[k] - v) * f)).join(',')})`
-}
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const pad = (n) => String(n).padStart(2, '0')
@@ -34,7 +24,7 @@ function months(days) {
   })
 }
 
-function Month({ y, m, byIso, measure, hovered, onHover, todayIso }) {
+function Month({ y, m, byIso, measure, hovered, onHover, onSelect, todayIso }) {
   const first = (new Date(y, m, 1).getDay() + 6) % 7
   const count = new Date(y, m + 1, 0).getDate()
   const cells = [...Array(first).fill(null), ...Array.from({ length: count }, (_, i) => i + 1)]
@@ -61,6 +51,7 @@ function Month({ y, m, byIso, measure, hovered, onHover, todayIso }) {
               type="button"
               onMouseEnter={() => day && onHover(iso)}
               onFocus={() => day && onHover(iso)}
+              onClick={() => day && onSelect(iso)}
               className={`relative flex aspect-square w-10 items-center justify-center rounded-md text-xs transition sm:w-11 ${
                 active ? 'ring-2 ring-amber-300 ring-offset-2 ring-offset-slate-900' : ''
               } ${day ? 'cursor-pointer' : 'cursor-default'}`}
@@ -72,9 +63,12 @@ function Month({ y, m, byIso, measure, hovered, onHover, todayIso }) {
                       color: future ? '#2b3a52' : '#64748b',
                     }
               }
-              aria-label={`${iso}${v != null ? `: ${v.toFixed(measure.digits)}` : ''}`}
+              aria-label={`${iso}${v != null ? `: ${v.toFixed(measure.digits)}` : ''}${day?.party ? ', party night' : ''}`}
             >
               {d}
+              {day?.party && (
+                <span className="absolute -bottom-1.5 -right-1.5 text-sm leading-none drop-shadow" aria-hidden>🎉</span>
+              )}
               {day?.form.unusual && !/^no(ne)?$/i.test(day.form.unusual) && (
                 <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-300" />
               )}
@@ -92,7 +86,7 @@ const fmtH = (v) => {
   return `${Math.floor(mins / 60)}h ${pad(mins % 60)}m`
 }
 
-function Detail({ day }) {
+function Detail({ day, pinned, party }) {
   if (!day) return null
   const when = new Date(`${day.iso}T12:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
   const rows = [
@@ -116,6 +110,27 @@ function Detail({ day }) {
         ))}
       </dl>
       {note && <p className="mt-3 border-t border-slate-800 pt-2 text-xs text-amber-200/80">“{note}”</p>}
+      <div className="mt-3 border-t border-slate-800 pt-3">
+        <button
+          type="button"
+          onClick={() => party.toggle(day.iso)}
+          aria-pressed={day.party}
+          className={`flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition ${
+            day.party
+              ? 'border-pink-400/60 bg-pink-500/15 text-pink-200 hover:bg-pink-500/25'
+              : 'border-slate-700 text-slate-300 hover:border-pink-400/60 hover:text-pink-200'
+          }`}
+        >
+          <span aria-hidden>🎉</span>
+          {day.party ? 'Party night (click to unmark)' : 'Mark as party night'}
+        </button>
+        <p className="mt-1.5 text-center text-[11px] text-slate-500">
+          {party.saving ? 'Saving to the Google Sheet…'
+            : !pinned ? 'Click a night in the calendar to select it'
+              : party.synced ? 'Saved to the Google Sheet' : 'Saved in this browser only'}
+        </p>
+        {party.error && <p className="mt-1 text-center text-[11px] text-rose-300">{party.error}</p>}
+      </div>
     </div>
   )
 }
@@ -152,13 +167,15 @@ function Weekdays({ days, measure }) {
   )
 }
 
-export default function CalendarHeatmap({ days }) {
+export default function CalendarHeatmap({ days, party }) {
   const [key, setKey] = useState('score')
   const measure = MEASURES.find((m) => m.key === key)
   const byIso = Object.fromEntries(days.filter((d) => d.iso).map((d) => [d.iso, d]))
   const latest = [...days].reverse().find((d) => d.iso && d.sleep.score != null)
   const [hovered, setHovered] = useState(null)
-  const shown = byIso[hovered] ?? latest
+  const [selected, setSelected] = useState(null)
+  // Hover previews a night; a click pins it so the party button can be reached
+  const shown = byIso[hovered] ?? byIso[selected] ?? latest
   const [todayIso] = useState(() => {
     const now = new Date()
     return isoOf(now.getFullYear(), now.getMonth(), now.getDate())
@@ -184,16 +201,17 @@ export default function CalendarHeatmap({ days }) {
       </div>
 
       <div className="flex flex-col gap-6 md:flex-row">
-        <div className="flex flex-wrap gap-8">
+        <div className="flex flex-wrap gap-8" onMouseLeave={() => setHovered(null)}>
           {months(days).map(({ y, m }) => (
             <Month
               key={`${y}-${m}`} y={y} m={m} byIso={byIso} measure={measure}
               hovered={shown?.iso} onHover={setHovered} todayIso={todayIso}
+              onSelect={setSelected}
             />
           ))}
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-5 md:max-w-sm">
-          <Detail day={shown} />
+          <Detail day={shown} pinned={selected === shown?.iso} party={party} />
           <Weekdays days={days} measure={measure} />
         </div>
       </div>
@@ -212,6 +230,9 @@ export default function CalendarHeatmap({ days }) {
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-300" /> Unusual night noted
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span aria-hidden>🎉</span> Party night ({party.synced ? 'saved to the Google Sheet' : 'saved in this browser only'})
         </span>
       </div>
     </div>

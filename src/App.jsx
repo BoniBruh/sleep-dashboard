@@ -9,6 +9,9 @@ import FactorImpact from './components/FactorImpact'
 import Explore from './components/Explore'
 import CalendarHeatmap from './components/CalendarHeatmap'
 import Story from './components/Story'
+import PartyImpact from './components/PartyImpact'
+import SleepWindow from './components/SleepWindow'
+import { useParties, tagParties } from './lib/party'
 
 const axis = { stroke: '#64748b', fontSize: 12 }
 const tip = { contentStyle: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8 } }
@@ -67,7 +70,9 @@ const hm = (v) => {
 }
 
 export default function App() {
-  const [days, setDays] = useState([])
+  const [rawDays, setDays] = useState([])
+  const party = useParties()
+  const days = tagParties(rawDays, party.parties)
   const [error, setError] = useState(null)
   const [updated, setUpdated] = useState(null)
   // #story in the URL opens story mode directly, handy for presenting
@@ -139,7 +144,15 @@ export default function App() {
       </div>
 
       <Card title="Sleep calendar">
-        <CalendarHeatmap days={days} />
+        <CalendarHeatmap days={days} party={party} />
+      </Card>
+
+      <Card title="Bedtime & wake-up">
+        <SleepWindow days={days} />
+      </Card>
+
+      <Card title="Parties & sleep">
+        <PartyImpact days={days} synced={party.synced} />
       </Card>
 
       <Card title="What affects my sleep?">

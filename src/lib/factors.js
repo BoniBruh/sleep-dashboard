@@ -8,6 +8,8 @@ const yes = (v) => {
 
 // Each factor answers "did this happen that night?" → true / false / null (unknown)
 export const FACTORS = [
+  // Marked by the user in the calendar; unmarked nights count as "no party"
+  { key: 'party', label: 'Party night', test: (d) => (d.iso ? !!d.party : null) },
   { key: 'caffeine', label: 'Caffeine / alcohol before bed', test: (d) => yes(d.form.caffeine) },
   { key: 'screens', label: 'Screens in last hour', test: (d) => yes(d.form.screens) },
   { key: 'nap', label: 'Napped during the day', test: (d) => yes(d.form.nap) },
