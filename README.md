@@ -12,6 +12,22 @@ npm install
 3. Copy `.env.example` to `.env` and fill in the values (ask Alex for the API key; don't commit it).
 4. Run `npm run dev` and open http://localhost:5173/
 
+## Deploying on Vercel (password protected)
+The live site asks for a username and password before it loads. This is done by `middleware.js`,
+which Vercel runs in front of the site; it does nothing during `npm run dev`.
+
+1. On vercel.com, **Add New → Project** and import the GitHub repository. The Vite preset is detected automatically.
+2. Under **Environment Variables** add:
+   - `VITE_SHEET_ID` and `VITE_API_KEY`: same values as in your `.env`
+   - `BASIC_AUTH_USER` and `BASIC_AUTH_PASSWORD`: the login you want to share
+   - optional `VITE_PARTY_URL` (see below)
+3. Deploy. If the two `BASIC_AUTH_` variables are missing, the site stays locked with a message.
+4. In Google Cloud Console (APIs & Services → Credentials → the API key → Website restrictions),
+   add the Vercel address, e.g. `https://your-project.vercel.app/*`. Without this the dashboard shows "Sheets API error 403".
+
+To change the password, edit `BASIC_AUTH_PASSWORD` in Vercel and redeploy. Browsers remember the login until they are closed.
+The API key is still sent to the browser of anyone who logs in, so keep its website restriction in place.
+
 ## Saving party nights to the sheet
 Party nights are marked in the Sleep calendar. Without this setup they are only kept in the
 browser that marked them. With it they are saved to a "Party nights" tab in the Google Sheet,
